@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - SSO Web App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .oauth-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        .oauth-btn:hover {
+            background-color: #f8f9fa;
+            color: #333;
+            text-decoration: none;
+        }
+        .google-btn {
+            background-color: #fff;
+            border-color: #db4437;
+        }
+        .google-btn:hover {
+            background-color: #db4437;
+            color: white;
+        }
+        .github-btn {
+            background-color: #fff;
+            border-color: #333;
+        }
+        .github-btn:hover {
+            background-color: #333;
+            color: white;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            color: white;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt"></i> SSO Web App
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {{if .user}}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                    </li>
+                    {{else}}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">Register</a>
+                    </li>
+                    {{end}}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero-section">
+            <div class="container text-center">
+                <h1 class="display-4 mb-4">
+                    <i class="fas fa-shield-alt"></i> 
+                    Secure Single Sign-On
+                </h1>
+                <p class="lead mb-4">
+                    A modern, secure authentication system built with Go. 
+                    Sign in with your favorite social accounts or create a new account.
+                </p>
+                {{if not .user}}
+                <div class="mb-4">
+                    <a href="/login" class="btn btn-custom btn-lg me-3">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </a>
+                    <a href="/register" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-user-plus"></i> Get Started
+                    </a>
+                </div>
+                {{else}}
+                <div class="mb-4">
+                    <a href="/dashboard" class="btn btn-custom btn-lg me-3">
+                        <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                    </a>
+                </div>
+                {{end}}
+            </div>
+        </section>
+
+        <section class="py-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-lock fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Secure Authentication</h5>
+                                <p class="card-text">JWT-based authentication with secure password hashing and token validation.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fab fa-github fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">OAuth Integration</h5>
+                                <p class="card-text">Sign in with Google, GitHub, and other popular OAuth providers.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">User Management</h5>
+                                <p class="card-text">Complete user profile management with customizable fields and preferences.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {{if .user}}
+        <section class="py-5 bg-light">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 text-center">
+                        <h2 class="mb-4">Welcome back, {{.user.first_name}}!</h2>
+                        <p class="lead mb-4">You're successfully logged in to your SSO account.</p>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Account Status</h6>
+                                        <p class="card-text">
+                                            {{if .user.is_verified}}
+                                                <span class="badge bg-success">Verified</span>
+                                            {{else}}
+                                                <span class="badge bg-warning">Unverified</span>
+                                            {{end}}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Member Since</h6>
+                                        <p class="card-text">{{.user.created_at.Format "January 2, 2006"}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {{end}}
+    </main>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2025 SSO Web Application. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p>Built with Go and Gin</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
