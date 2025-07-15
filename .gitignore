@@ -46,6 +46,7 @@ Thumbs.db
 
 # IDE files
 .vscode/
+!.vscode/tasks.json
 .idea/
 *.swp
 *.swo

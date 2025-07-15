@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run SSO Web App",
+			"type": "shell",
+			"command": "go",
+			"args": [
+				"run",
+				"cmd/server/main.go"
+			],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}
