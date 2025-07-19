@@ -14,6 +14,14 @@ import (
 	"sso-web-app/internal/repository"
 )
 
+// Helper function to convert string to string pointer
+func stringPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 type OAuthService struct {
 	userRepo     repository.UserRepository
 	authService  *AuthService
@@ -222,9 +230,9 @@ func (s *OAuthService) findOrCreateGoogleUser(googleUser *GoogleUser) (*models.U
 	user, err = s.userRepo.GetByEmail(googleUser.Email)
 	if err == nil {
 		// Update Google ID for existing user
-		user.GoogleID = googleUser.ID
-		if user.AvatarURL == "" {
-			user.AvatarURL = googleUser.Picture
+		user.GoogleID = stringPtr(googleUser.ID)
+		if user.AvatarURL == nil || *user.AvatarURL == "" {
+			user.AvatarURL = stringPtr(googleUser.Picture)
 		}
 		return s.userRepo.Update(user)
 	}
@@ -234,8 +242,8 @@ func (s *OAuthService) findOrCreateGoogleUser(googleUser *GoogleUser) (*models.U
 		Email:     googleUser.Email,
 		FirstName: googleUser.Given,
 		LastName:  googleUser.Family,
-		GoogleID:  googleUser.ID,
-		AvatarURL: googleUser.Picture,
+		GoogleID:  stringPtr(googleUser.ID),
+		AvatarURL: stringPtr(googleUser.Picture),
 		IsActive:  true,
 		IsVerified: true, // OAuth users are considered verified
 	}
@@ -257,9 +265,9 @@ func (s *OAuthService) findOrCreateGitHubUser(githubUser *GitHubUser) (*models.U
 		user, err = s.userRepo.GetByEmail(githubUser.Email)
 		if err == nil {
 			// Update GitHub ID for existing user
-			user.GitHubID = githubIDStr
-			if user.AvatarURL == "" {
-				user.AvatarURL = githubUser.AvatarURL
+			user.GitHubID = stringPtr(githubIDStr)
+			if user.AvatarURL == nil || *user.AvatarURL == "" {
+				user.AvatarURL = stringPtr(githubUser.AvatarURL)
 			}
 			return s.userRepo.Update(user)
 		}
@@ -277,11 +285,11 @@ func (s *OAuthService) findOrCreateGitHubUser(githubUser *GitHubUser) (*models.U
 		Email:     githubUser.Email,
 		FirstName: firstName,
 		LastName:  lastName,
-		GitHubID:  githubIDStr,
-		AvatarURL: githubUser.AvatarURL,
-		Bio:       githubUser.Bio,
-		Website:   githubUser.Blog,
-		Location:  githubUser.Location,
+		GitHubID:  stringPtr(githubIDStr),
+		AvatarURL: stringPtr(githubUser.AvatarURL),
+		Bio:       stringPtr(githubUser.Bio),
+		Website:   stringPtr(githubUser.Blog),
+		Location:  stringPtr(githubUser.Location),
 		IsActive:  true,
 		IsVerified: githubUser.Email != "", // Only verified if we have an email
 	}

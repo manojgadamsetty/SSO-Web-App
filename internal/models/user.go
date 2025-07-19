@@ -23,14 +23,14 @@ type User struct {
 	Role        string `gorm:"default:'user'" json:"role"` // user, admin, moderator
 	
 	// OAuth fields
-	GoogleID  string `gorm:"uniqueIndex" json:"google_id,omitempty"`
-	GitHubID  string `gorm:"uniqueIndex" json:"github_id,omitempty"`
-	AvatarURL string `json:"avatar_url,omitempty"`
+	GoogleID  *string `gorm:"uniqueIndex" json:"google_id,omitempty"`
+	GitHubID  *string `gorm:"uniqueIndex" json:"github_id,omitempty"`
+	AvatarURL *string `json:"avatar_url,omitempty"`
 	
 	// Profile fields
-	Bio       string `json:"bio,omitempty"`
-	Website   string `json:"website,omitempty"`
-	Location  string `json:"location,omitempty"`
+	Bio       *string `json:"bio,omitempty"`
+	Website   *string `json:"website,omitempty"`
+	Location  *string `json:"location,omitempty"`
 	
 	// Security fields
 	LastLoginAt     *time.Time `json:"last_login_at,omitempty"`
@@ -57,20 +57,34 @@ type UserResponse struct {
 
 // ToResponse converts User to UserResponse
 func (u *User) ToResponse() UserResponse {
-	return UserResponse{
+	response := UserResponse{
 		ID:          u.ID,
 		Email:       u.Email,
 		FirstName:   u.FirstName,
 		LastName:    u.LastName,
 		IsActive:    u.IsActive,
 		IsVerified:  u.IsVerified,
-		AvatarURL:   u.AvatarURL,
-		Bio:         u.Bio,
-		Website:     u.Website,
-		Location:    u.Location,
+		IsAdmin:     u.IsAdmin,
+		Role:        u.Role,
 		CreatedAt:   u.CreatedAt,
 		LastLoginAt: u.LastLoginAt,
 	}
+	
+	// Handle pointer fields
+	if u.AvatarURL != nil {
+		response.AvatarURL = *u.AvatarURL
+	}
+	if u.Bio != nil {
+		response.Bio = *u.Bio
+	}
+	if u.Website != nil {
+		response.Website = *u.Website
+	}
+	if u.Location != nil {
+		response.Location = *u.Location
+	}
+	
+	return response
 }
 
 // LoginRequest represents login request data

@@ -7,6 +7,14 @@ import (
 	"sso-web-app/internal/repository"
 )
 
+// Helper function to convert string to string pointer
+func stringPtrAdmin(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 var (
 	ErrNotAuthorized = errors.New("user not authorized for this action")
 	ErrInvalidRole   = errors.New("invalid role specified")
@@ -112,9 +120,9 @@ func (s *AdminService) UpdateUser(adminUser *models.User, userID uint, req model
 	user.FirstName = req.FirstName
 	user.LastName = req.LastName
 	user.Email = req.Email
-	user.Bio = req.Bio
-	user.Website = req.Website
-	user.Location = req.Location
+	user.Bio = stringPtrAdmin(req.Bio)
+	user.Website = stringPtrAdmin(req.Website)
+	user.Location = stringPtrAdmin(req.Location)
 	
 	if req.IsActive != nil {
 		user.IsActive = *req.IsActive
