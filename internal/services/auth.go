@@ -18,6 +18,14 @@ var (
 	ErrInvalidToken       = errors.New("invalid token")
 )
 
+// Helper function to convert string to string pointer
+func stringPtrAuth(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 type AuthService struct {
 	userRepo  repository.UserRepository
 	jwtSecret []byte
@@ -149,9 +157,9 @@ func (s *AuthService) UpdateProfile(userID uint, req models.UpdateProfileRequest
 
 	user.FirstName = req.FirstName
 	user.LastName = req.LastName
-	user.Bio = req.Bio
-	user.Website = req.Website
-	user.Location = req.Location
+	user.Bio = stringPtrAuth(req.Bio)
+	user.Website = stringPtrAuth(req.Website)
+	user.Location = stringPtrAuth(req.Location)
 
 	return s.userRepo.Update(user)
 }

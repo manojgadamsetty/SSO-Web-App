@@ -24,11 +24,12 @@ func main() {
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService, oauthService)
+	adminHandler := handlers.NewAdminHandler()
 
 	// Setup Gin router
 	router := gin.Default()
 
-	// Load HTML templates with proper parsing
+	// Load HTML templates from templates directory
 	router.LoadHTMLGlob("templates/*.html")
 
 	// Serve static files
@@ -66,6 +67,27 @@ func main() {
 	{
 		api.GET("/user", authHandler.GetUser)
 		api.PUT("/user", authHandler.UpdateUser)
+	}
+
+	// Admin routes
+	admin := router.Group("/admin")
+	admin.Use(middleware.AuthMiddleware(), middleware.AdminRequired())
+	{
+		admin.GET("/dashboard", adminHandler.Dashboard)
+		admin.GET("/users", adminHandler.UsersList)
+		admin.GET("/users/:id", adminHandler.UserDetail)
+	}
+
+	// Admin API routes
+	adminAPI := router.Group("/admin/api")
+	adminAPI.Use(middleware.AuthMiddleware(), middleware.AdminAPIRequired())
+	{
+		adminAPI.PUT("/users/:id", adminHandler.UpdateUser)
+		adminAPI.POST("/users/:id/activate", adminHandler.ActivateUser)
+		adminAPI.POST("/users/:id/deactivate", adminHandler.DeactivateUser)
+		adminAPI.DELETE("/users/:id", adminHandler.DeleteUser)
+		adminAPI.POST("/users/:id/promote", adminHandler.PromoteToAdmin)
+		adminAPI.POST("/users/:id/demote", adminHandler.DemoteFromAdmin)
 	}
 
 	log.Printf("Server starting on port %s", port)

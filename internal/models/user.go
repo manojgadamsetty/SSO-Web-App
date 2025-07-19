@@ -19,16 +19,18 @@ type User struct {
 	LastName    string `gorm:"not null" json:"last_name"`
 	IsActive    bool   `gorm:"default:true" json:"is_active"`
 	IsVerified  bool   `gorm:"default:false" json:"is_verified"`
+	IsAdmin     bool   `gorm:"default:false" json:"is_admin"`
+	Role        string `gorm:"default:'user'" json:"role"` // user, admin, moderator
 	
 	// OAuth fields
-	GoogleID  string `gorm:"uniqueIndex" json:"google_id,omitempty"`
-	GitHubID  string `gorm:"uniqueIndex" json:"github_id,omitempty"`
-	AvatarURL string `json:"avatar_url,omitempty"`
+	GoogleID  *string `gorm:"uniqueIndex" json:"google_id,omitempty"`
+	GitHubID  *string `gorm:"uniqueIndex" json:"github_id,omitempty"`
+	AvatarURL *string `json:"avatar_url,omitempty"`
 	
 	// Profile fields
-	Bio       string `json:"bio,omitempty"`
-	Website   string `json:"website,omitempty"`
-	Location  string `json:"location,omitempty"`
+	Bio       *string `json:"bio,omitempty"`
+	Website   *string `json:"website,omitempty"`
+	Location  *string `json:"location,omitempty"`
 	
 	// Security fields
 	LastLoginAt     *time.Time `json:"last_login_at,omitempty"`
@@ -43,6 +45,8 @@ type UserResponse struct {
 	LastName    string    `json:"last_name"`
 	IsActive    bool      `json:"is_active"`
 	IsVerified  bool      `json:"is_verified"`
+	IsAdmin     bool      `json:"is_admin"`
+	Role        string    `json:"role"`
 	AvatarURL   string    `json:"avatar_url,omitempty"`
 	Bio         string    `json:"bio,omitempty"`
 	Website     string    `json:"website,omitempty"`
@@ -53,20 +57,34 @@ type UserResponse struct {
 
 // ToResponse converts User to UserResponse
 func (u *User) ToResponse() UserResponse {
-	return UserResponse{
+	response := UserResponse{
 		ID:          u.ID,
 		Email:       u.Email,
 		FirstName:   u.FirstName,
 		LastName:    u.LastName,
 		IsActive:    u.IsActive,
 		IsVerified:  u.IsVerified,
-		AvatarURL:   u.AvatarURL,
-		Bio:         u.Bio,
-		Website:     u.Website,
-		Location:    u.Location,
+		IsAdmin:     u.IsAdmin,
+		Role:        u.Role,
 		CreatedAt:   u.CreatedAt,
 		LastLoginAt: u.LastLoginAt,
 	}
+	
+	// Handle pointer fields
+	if u.AvatarURL != nil {
+		response.AvatarURL = *u.AvatarURL
+	}
+	if u.Bio != nil {
+		response.Bio = *u.Bio
+	}
+	if u.Website != nil {
+		response.Website = *u.Website
+	}
+	if u.Location != nil {
+		response.Location = *u.Location
+	}
+	
+	return response
 }
 
 // LoginRequest represents login request data
@@ -96,4 +114,29 @@ type UpdateProfileRequest struct {
 type JWTClaims struct {
 	UserID uint   `json:"user_id"`
 	Email  string `json:"email"`
+}
+
+// AdminUpdateUserRequest represents admin user update request
+type AdminUpdateUserRequest struct {
+	FirstName  string `json:"first_name" binding:"required,min=2"`
+	LastName   string `json:"last_name" binding:"required,min=2"`
+	Email      string `json:"email" binding:"required,email"`
+	IsActive   *bool  `json:"is_active"`
+	IsVerified *bool  `json:"is_verified"`
+	IsAdmin    *bool  `json:"is_admin"`
+	Role       string `json:"role" binding:"oneof=user admin moderator"`
+	Bio        string `json:"bio"`
+	Website    string `json:"website"`
+	Location   string `json:"location"`
+}
+
+// UserStatsResponse represents user statistics for admin dashboard
+type UserStatsResponse struct {
+	TotalUsers     int64 `json:"total_users"`
+	ActiveUsers    int64 `json:"active_users"`
+	VerifiedUsers  int64 `json:"verified_users"`
+	AdminUsers     int64 `json:"admin_users"`
+	NewUsersToday  int64 `json:"new_users_today"`
+	NewUsersWeek   int64 `json:"new_users_week"`
+	NewUsersMonth  int64 `json:"new_users_month"`
 }
