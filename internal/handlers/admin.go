@@ -49,7 +49,7 @@ func (h *AdminHandler) Dashboard(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "admin/dashboard.html", gin.H{
+	c.HTML(http.StatusOK, "admin-dashboard.html", gin.H{
 		"title":     "Admin Dashboard",
 		"user":      adminUser,
 		"stats":     stats,
@@ -109,7 +109,7 @@ func (h *AdminHandler) UsersList(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "admin/users.html", gin.H{
+	c.HTML(http.StatusOK, "admin-users.html", gin.H{
 		"title":      "User Management",
 		"user":       adminUser,
 		"users":      users,
@@ -167,7 +167,7 @@ func (h *AdminHandler) UserDetail(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "admin/user-detail.html", gin.H{
+	c.HTML(http.StatusOK, "admin-user-detail.html", gin.H{
 		"title":      "User Details",
 		"user":       adminUser,
 		"targetUser": targetUser,

@@ -29,8 +29,8 @@ func main() {
 	// Setup Gin router
 	router := gin.Default()
 
-	// Load HTML templates with proper parsing
-	router.LoadHTMLGlob("templates/**/*.html")
+	// Load HTML templates from templates directory
+	router.LoadHTMLGlob("templates/*.html")
 
 	// Serve static files
 	router.Static("/static", "./static")

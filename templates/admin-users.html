@@ -286,36 +286,9 @@
                     </div>
                 </div>
 
-                <!-- Pagination -->
+                <!-- Simple pagination for now -->
                 <div class="d-flex justify-content-center mt-4">
-                    <nav aria-label="Users pagination">
-                        <ul class="pagination">
-                            {{if gt .currentPage 1}}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{sub .currentPage 1}}{{if .searchQuery}}&search={{.searchQuery}}{{end}}{{if .roleFilter}}&role={{.roleFilter}}{{end}}">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </a>
-                                </li>
-                            {{end}}
-                            
-                            {{range $i := iterate 5}}
-                                {{$page := add (sub $.currentPage 2) $i}}
-                                {{if and (gt $page 0) (le $page 10)}}
-                                    <li class="page-item {{if eq $page $.currentPage}}active{{end}}">
-                                        <a class="page-link" href="?page={{$page}}{{if $.searchQuery}}&search={{$.searchQuery}}{{end}}{{if $.roleFilter}}&role={{$.roleFilter}}{{end}}">
-                                            {{$page}}
-                                        </a>
-                                    </li>
-                                {{end}}
-                            {{end}}
-                            
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{add .currentPage 1}}{{if .searchQuery}}&search={{.searchQuery}}{{end}}{{if .roleFilter}}&role={{.roleFilter}}{{end}}">
-                                    <i class="fas fa-chevron-right"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
+                    <div class="text-muted">Page {{.currentPage}}</div>
                 </div>
             </div>
         </div>

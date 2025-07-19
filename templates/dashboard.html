@@ -49,8 +49,8 @@
                                         <div>
                                             <h6 class="card-title mb-0">Last Login</h6>
                                             <p class="mb-0">
-                                                {{if .user.last_login_at}}
-                                                    {{.user.last_login_at.Format "Jan 2, 3:04 PM"}}
+                                                {{if .user.LastLoginAt}}
+                                                    {{.user.LastLoginAt.Format "Jan 2, 3:04 PM"}}
                                                 {{else}}
                                                     First time
                                                 {{end}}
@@ -67,16 +67,16 @@
                             <h5><i class="fas fa-user me-2"></i>Profile Information</h5>
                             <div class="card">
                                 <div class="card-body">
-                                    <p><strong>Name:</strong> {{.user.first_name}} {{.user.last_name}}</p>
-                                    <p><strong>Email:</strong> {{.user.email}}</p>
-                                    {{if .user.bio}}
-                                    <p><strong>Bio:</strong> {{.user.bio}}</p>
+                                    <p><strong>Name:</strong> {{.user.FirstName}} {{.user.LastName}}</p>
+                                    <p><strong>Email:</strong> {{.user.Email}}</p>
+                                    {{if .user.Bio}}
+                                    <p><strong>Bio:</strong> {{.user.Bio}}</p>
                                     {{end}}
-                                    {{if .user.location}}
-                                    <p><strong>Location:</strong> {{.user.location}}</p>
+                                    {{if .user.Location}}
+                                    <p><strong>Location:</strong> {{.user.Location}}</p>
                                     {{end}}
-                                    {{if .user.website}}
-                                    <p><strong>Website:</strong> <a href="{{.user.website}}" target="_blank">{{.user.website}}</a></p>
+                                    {{if .user.Website}}
+                                    <p><strong>Website:</strong> <a href="{{.user.Website}}" target="_blank">{{.user.Website}}</a></p>
                                     {{end}}
                                     <a href="/profile" class="btn btn-outline-primary btn-sm">
                                         <i class="fas fa-edit"></i> Edit Profile
@@ -92,6 +92,11 @@
                                         <a href="/profile" class="btn btn-outline-primary">
                                             <i class="fas fa-user-edit"></i> Update Profile
                                         </a>
+                                        {{if or .user.IsAdmin (eq .user.Role "admin")}}
+                                            <a href="/admin/dashboard" class="btn btn-outline-danger">
+                                                <i class="fas fa-shield-alt"></i> Admin Dashboard
+                                            </a>
+                                        {{end}}
                                         <button class="btn btn-outline-secondary" onclick="viewAccountInfo()">
                                             <i class="fas fa-info-circle"></i> Account Information
                                         </button>

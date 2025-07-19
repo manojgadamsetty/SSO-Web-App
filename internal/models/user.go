@@ -6,11 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// User rep		IsActive    u.IsActive,
-		IsVerified  u.IsVerified,
-		IsAdmin     u.IsAdmin,
-		Role        u.Role,
-		AvatarURL   u.AvatarURL,ents a user in the system
+// User represents a user in the system
 type User struct {
 	ID        uint           `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time      `json:"created_at"`
