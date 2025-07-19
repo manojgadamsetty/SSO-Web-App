@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - SSO Web App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .stats-card .card-body {
+            padding: 2rem;
+        }
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .stats-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .main-content {
+            padding: 2rem;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .recent-activity {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .activity-item {
+            padding: 1rem;
+            border-left: 3px solid #667eea;
+            margin-bottom: 1rem;
+            background: white;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-white mb-4">
+                        <i class="fas fa-shield-alt"></i> Admin Panel
+                    </h4>
+                    <nav class="nav flex-column">
+                        <a class="nav-link {{if eq .activePage "dashboard"}}active{{end}}" href="/admin/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link {{if eq .activePage "users"}}active{{end}}" href="/admin/users">
+                            <i class="fas fa-users"></i> User Management
+                        </a>
+                        <a class="nav-link" href="/admin/settings">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <a class="nav-link" href="/admin/logs">
+                            <i class="fas fa-file-alt"></i> System Logs
+                        </a>
+                        <hr class="my-3" style="border-color: rgba(255,255,255,0.3);">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-arrow-left"></i> Back to App
+                        </a>
+                        <a class="nav-link" href="/auth/logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Header -->
+                <div class="row mb-4">
+                    <div class="col">
+                        <h1 class="h3 mb-0">{{.title}}</h1>
+                        <p class="text-muted">Welcome back, {{.user.FirstName}}!</p>
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center">
+                            {{if .user.ProfilePicture}}
+                                <img src="{{.user.ProfilePicture}}" alt="Profile" class="user-avatar me-2">
+                            {{else}}
+                                <div class="user-avatar me-2 bg-primary d-flex align-items-center justify-content-center text-white">
+                                    {{slice .user.FirstName 0 1}}
+                                </div>
+                            {{end}}
+                            <div>
+                                <div class="fw-bold">{{.user.FirstName}} {{.user.LastName}}</div>
+                                <small class="text-muted">Super Admin</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <div class="stats-number">{{.stats.TotalUsers}}</div>
+                                <div class="stats-label">Total Users</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <div class="stats-number">{{.stats.ActiveUsers}}</div>
+                                <div class="stats-label">Active Users</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <div class="stats-number">{{.stats.NewUsersToday}}</div>
+                                <div class="stats-label">New Today</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <div class="stats-number">{{.stats.AdminUsers}}</div>
+                                <div class="stats-label">Administrators</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Analytics -->
+                <div class="row mb-4">
+                    <div class="col-lg-8 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-chart-line me-2"></i>User Registration Trends
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="userTrendsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-chart-pie me-2"></i>User Types
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="userTypesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity and Quick Actions -->
+                <div class="row">
+                    <div class="col-lg-8 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-clock me-2"></i>Recent Activity
+                                </h5>
+                            </div>
+                            <div class="card-body recent-activity">
+                                <div class="activity-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>New user registration</strong>
+                                            <p class="mb-0 text-muted">john.doe@example.com joined the platform</p>
+                                        </div>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>Admin action</strong>
+                                            <p class="mb-0 text-muted">User jane.smith@example.com was promoted to moderator</p>
+                                        </div>
+                                        <small class="text-muted">4 hours ago</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>System alert</strong>
+                                            <p class="mb-0 text-muted">Daily backup completed successfully</p>
+                                        </div>
+                                        <small class="text-muted">6 hours ago</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>User verification</strong>
+                                            <p class="mb-0 text-muted">5 users verified their email addresses</p>
+                                        </div>
+                                        <small class="text-muted">8 hours ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="/admin/users" class="btn btn-primary">
+                                        <i class="fas fa-users me-2"></i>Manage Users
+                                    </a>
+                                    <a href="/admin/users?role=pending" class="btn btn-warning">
+                                        <i class="fas fa-user-clock me-2"></i>Pending Verifications
+                                    </a>
+                                    <a href="/admin/settings" class="btn btn-info">
+                                        <i class="fas fa-cog me-2"></i>System Settings
+                                    </a>
+                                    <a href="/admin/backup" class="btn btn-secondary">
+                                        <i class="fas fa-download me-2"></i>Backup Data
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Status -->
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-heartbeat me-2"></i>System Status
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>Server Health</span>
+                                    <span class="badge bg-success">Excellent</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>Database</span>
+                                    <span class="badge bg-success">Online</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>OAuth Services</span>
+                                    <span class="badge bg-success">Connected</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Last Backup</span>
+                                    <span class="badge bg-info">6 hours ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // User Registration Trends Chart
+        const trendsCtx = document.getElementById('userTrendsChart').getContext('2d');
+        new Chart(trendsCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'New Users',
+                    data: [12, 19, 3, 5, 2, 3, 15],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // User Types Chart
+        const typesCtx = document.getElementById('userTypesChart').getContext('2d');
+        const totalUsers = {{.stats.TotalUsers}};
+        const adminUsers = {{.stats.AdminUsers}};
+        const regularUsers = totalUsers - adminUsers;
+        
+        new Chart(typesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Regular Users', 'Administrators', 'Moderators'],
+                datasets: [{
+                    data: [regularUsers, adminUsers, 5],
+                    backgroundColor: ['#667eea', '#764ba2', '#f093fb'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

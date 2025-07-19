@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}} - SSO Web App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .main-content {
+            padding: 2rem;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.25rem;
+        }
+        .action-buttons .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        .search-filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #6c757d;
+            background-color: #f8f9fa;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .pagination .page-link {
+            border-radius: 8px;
+            margin: 0 2px;
+            border: none;
+            color: #667eea;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-white mb-4">
+                        <i class="fas fa-shield-alt"></i> Admin Panel
+                    </h4>
+                    <nav class="nav flex-column">
+                        <a class="nav-link {{if eq .activePage "dashboard"}}active{{end}}" href="/admin/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link {{if eq .activePage "users"}}active{{end}}" href="/admin/users">
+                            <i class="fas fa-users"></i> User Management
+                        </a>
+                        <a class="nav-link" href="/admin/settings">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <a class="nav-link" href="/admin/logs">
+                            <i class="fas fa-file-alt"></i> System Logs
+                        </a>
+                        <hr class="my-3" style="border-color: rgba(255,255,255,0.3);">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-arrow-left"></i> Back to App
+                        </a>
+                        <a class="nav-link" href="/auth/logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Header -->
+                <div class="row mb-4">
+                    <div class="col">
+                        <h1 class="h3 mb-0">{{.title}}</h1>
+                        <p class="text-muted">Manage user accounts and permissions</p>
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center">
+                            {{if .user.ProfilePicture}}
+                                <img src="{{.user.ProfilePicture}}" alt="Profile" class="user-avatar me-2">
+                            {{else}}
+                                <div class="user-avatar me-2 bg-primary d-flex align-items-center justify-content-center text-white">
+                                    {{slice .user.FirstName 0 1}}
+                                </div>
+                            {{end}}
+                            <div>
+                                <div class="fw-bold">{{.user.FirstName}} {{.user.LastName}}</div>
+                                <small class="text-muted">Super Admin</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and Filters -->
+                <div class="search-filters">
+                    <form method="GET" action="/admin/users">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="search" class="form-label">Search Users</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="search" name="search" 
+                                           placeholder="Search by name or email..." value="{{.searchQuery}}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="role" class="form-label">Filter by Role</label>
+                                <select class="form-select" id="role" name="role">
+                                    <option value="">All Roles</option>
+                                    <option value="user" {{if eq .roleFilter "user"}}selected{{end}}>User</option>
+                                    <option value="admin" {{if eq .roleFilter "admin"}}selected{{end}}>Admin</option>
+                                    <option value="moderator" {{if eq .roleFilter "moderator"}}selected{{end}}>Moderator</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="status" class="form-label">Filter by Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="verified">Verified</option>
+                                    <option value="unverified">Unverified</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter me-1"></i>Filter
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Users Table -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users me-2"></i>Users
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="exportUsers()">
+                                <i class="fas fa-download me-1"></i>Export
+                            </button>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                <i class="fas fa-plus me-1"></i>Add User
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range .users}}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {{if .ProfilePicture}}
+                                                    <img src="{{.ProfilePicture}}" alt="Profile" class="user-avatar me-3">
+                                                {{else}}
+                                                    <div class="user-avatar me-3 bg-secondary d-flex align-items-center justify-content-center text-white">
+                                                        {{slice .FirstName 0 1}}
+                                                    </div>
+                                                {{end}}
+                                                <div>
+                                                    <div class="fw-bold">{{.FirstName}} {{.LastName}}</div>
+                                                    <small class="text-muted">ID: {{.ID}}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>{{.Email}}</div>
+                                            {{if .IsVerified}}
+                                                <small class="text-success"><i class="fas fa-check-circle"></i> Verified</small>
+                                            {{else}}
+                                                <small class="text-warning"><i class="fas fa-exclamation-circle"></i> Unverified</small>
+                                            {{end}}
+                                        </td>
+                                        <td>
+                                            {{if .IsAdmin}}
+                                                <span class="badge bg-danger">Admin</span>
+                                            {{else if eq .Role "moderator"}}
+                                                <span class="badge bg-warning">Moderator</span>
+                                            {{else}}
+                                                <span class="badge bg-primary">User</span>
+                                            {{end}}
+                                        </td>
+                                        <td>
+                                            {{if .IsActive}}
+                                                <span class="badge bg-success status-badge">Active</span>
+                                            {{else}}
+                                                <span class="badge bg-secondary status-badge">Inactive</span>
+                                            {{end}}
+                                        </td>
+                                        <td>
+                                            <div>{{.CreatedAt.Format "Jan 2, 2006"}}</div>
+                                            <small class="text-muted">{{.CreatedAt.Format "15:04"}}</small>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <a href="/admin/users/{{.ID}}" class="btn btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button class="btn btn-outline-secondary" onclick="editUser({{.ID}})" title="Edit User">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                {{if .IsActive}}
+                                                    <button class="btn btn-outline-warning" onclick="deactivateUser({{.ID}})" title="Deactivate">
+                                                        <i class="fas fa-pause"></i>
+                                                    </button>
+                                                {{else}}
+                                                    <button class="btn btn-outline-success" onclick="activateUser({{.ID}})" title="Activate">
+                                                        <i class="fas fa-play"></i>
+                                                    </button>
+                                                {{end}}
+                                                {{if not .IsAdmin}}
+                                                    <button class="btn btn-outline-danger" onclick="deleteUser({{.ID}})" title="Delete User">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                {{end}}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="Users pagination">
+                        <ul class="pagination">
+                            {{if gt .currentPage 1}}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{sub .currentPage 1}}{{if .searchQuery}}&search={{.searchQuery}}{{end}}{{if .roleFilter}}&role={{.roleFilter}}{{end}}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {{end}}
+                            
+                            {{range $i := iterate 5}}
+                                {{$page := add (sub $.currentPage 2) $i}}
+                                {{if and (gt $page 0) (le $page 10)}}
+                                    <li class="page-item {{if eq $page $.currentPage}}active{{end}}">
+                                        <a class="page-link" href="?page={{$page}}{{if $.searchQuery}}&search={{$.searchQuery}}{{end}}{{if $.roleFilter}}&role={{$.roleFilter}}{{end}}">
+                                            {{$page}}
+                                        </a>
+                                    </li>
+                                {{end}}
+                            {{end}}
+                            
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{add .currentPage 1}}{{if .searchQuery}}&search={{.searchQuery}}{{end}}{{if .roleFilter}}&role={{.roleFilter}}{{end}}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-select" id="role" name="role">
+                                    <option value="user">User</option>
+                                    <option value="moderator">Moderator</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="addUser()">Add User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // User management functions
+        function editUser(userId) {
+            // Implement edit user functionality
+            window.location.href = `/admin/users/${userId}`;
+        }
+
+        function deactivateUser(userId) {
+            if (confirm('Are you sure you want to deactivate this user?')) {
+                fetch(`/admin/api/users/${userId}/deactivate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'An error occurred');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deactivating the user');
+                });
+            }
+        }
+
+        function activateUser(userId) {
+            fetch(`/admin/api/users/${userId}/activate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'An error occurred');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while activating the user');
+            });
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')) {
+                fetch(`/admin/api/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'An error occurred');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the user');
+                });
+            }
+        }
+
+        function addUser() {
+            const form = document.getElementById('addUserForm');
+            const formData = new FormData(form);
+            
+            const userData = {
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                email: formData.get('email'),
+                role: formData.get('role'),
+                isActive: formData.get('status') === 'active'
+            };
+
+            fetch('/admin/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'An error occurred');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding the user');
+            });
+        }
+
+        function exportUsers() {
+            window.location.href = '/admin/api/users/export';
+        }
+    </script>
+</body>
+</html>
